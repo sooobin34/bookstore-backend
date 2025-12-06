@@ -1,0 +1,10 @@
+Flask
+Flask-SQLAlchemy
+Flask-Migrate
+Flask-JWT-Extended
+Flask-Limiter
+flask-smorest
+marshmallow
+marshmallow-sqlalchemy
+python-dotenv
+PyMySQL

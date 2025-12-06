@@ -1,0 +1,397 @@
+{
+	"info": {
+		"_postman_id": "a9a6dcd7-ba34-4fe0-a090-9bef8c3b9949",
+		"name": "OnlineBookstore_202312720_ahnsoobin",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "48959361",
+		"_collection_link": "https://ansubinjjang1-8250788.postman.co/workspace/%EC%95%88%EC%88%98%EB%B9%88's-Workspace~95219ce8-b905-4c49-8e87-072d4b6e51c4/collection/48959361-a9a6dcd7-ba34-4fe0-a090-9bef8c3b9949?action=share&source=collection_link&creator=48959361"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "/auth/login",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 로그인 응답에서 accessToken 가져와 환경 변수에 저장\r",
+									"let json = pm.response.json();\r",
+									"\r",
+									"pm.environment.set(\"accessToken\", json.accessToken);\r",
+									"pm.environment.set(\"refreshToken\", json.refreshToken);\r",
+									"\r",
+									"// 응답 검증 테스트\r",
+									"pm.test(\"로그인 성공 & 토큰 반환\", function () {\r",
+									"    pm.expect(json).to.have.property(\"accessToken\");\r",
+									"    pm.expect(json).to.have.property(\"refreshToken\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"testuser@example.com\",\r\n    \"password\": \"User123!\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/auth/refresh",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 응답 JSON 파싱\r",
+									"const json = pm.response.json();\r",
+									"\r",
+									"// 1) 상태 코드 확인\r",
+									"pm.test(\"refresh 200 OK\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"// 2) 새 토큰 필드가 있는지 확인\r",
+									"pm.test(\"accessToken / refreshToken 필드 존재\", function () {\r",
+									"    pm.expect(json).to.have.property(\"accessToken\");\r",
+									"    pm.expect(json).to.have.property(\"refreshToken\");\r",
+									"});\r",
+									"\r",
+									"// 3) 환경 변수에 새 토큰 저장\r",
+									"pm.environment.set(\"accessToken\", json.accessToken);\r",
+									"pm.environment.set(\"refreshToken\", json.refreshToken);\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc2NDg2NDQ4OCwianRpIjoiNWZjMjcyYjEtODMzNi00MWUxLTlkZmItYmNmZjkyOTk0NmNlIiwidHlwZSI6InJlZnJlc2giLCJzdWIiOiIzMSIsIm5iZiI6MTc2NDg2NDQ4OCwiY3NyZiI6IjNmNTQ3YjMyLWU3NmUtNDQzZC04MWI2LTU0Y2E1MWJjMTdmNiIsImV4cCI6MTc2NzQ1NjQ4OCwiZW1haWwiOiJ0ZXN0dXNlckBleGFtcGxlLmNvbSIsInJvbGUiOiJBRE1JTiJ9.NurRakwtYWt0mA_C5Ai01GUsfVwg5_OKam5nulibk7k",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/refresh",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"refresh"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "/users/me (성공 케이스)",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// accessToken을 Authorization 헤더에 자동 세팅\r",
+									"const token = pm.environment.get(\"accessToken\");\r",
+									"\r",
+									"pm.test(\"accessToken 환경변수 존재\", function () {\r",
+									"    pm.expect(token, \"accessToken should be set in env\").to.be.a(\"string\");\r",
+									"});\r",
+									"\r",
+									"pm.request.headers.upsert({\r",
+									"    key: \"Authorization\",\r",
+									"    value: \"Bearer \" + token\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 응답 JSON 파싱\r",
+									"const json = pm.response.json();\r",
+									"\r",
+									"// 디버깅용 로그\r",
+									"console.log(\"GET /users/me response:\", json);\r",
+									"\r",
+									"// 1) 상태 코드 확인\r",
+									"pm.test(\"GET /users/me 200 OK\", function () {\r",
+									"  pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"// 2) accessToken 환경변수 존재 확인\r",
+									"pm.test(\"accessToken 환경변수 존재\", function () {\r",
+									"  const token = pm.environment.get(\"accessToken\");\r",
+									"  pm.expect(token, \"accessToken env\").to.be.a(\"string\").and.not.empty;\r",
+									"});\r",
+									"\r",
+									"// 3) 응답이 user 객체인지 확인\r",
+									"pm.test(\"user id / email 필드 존재\", function () {\r",
+									"  // 지금 응답 전체가 user 객체 형태임\r",
+									"  const user = json;\r",
+									"\r",
+									"  pm.expect(user, \"user 객체\").to.be.an(\"object\");\r",
+									"\r",
+									"  // 필드 이름은 userId, email\r",
+									"  pm.expect(user).to.have.property(\"userId\");\r",
+									"  pm.expect(user).to.have.property(\"email\");\r",
+									"});\r",
+									"\r",
+									"// 4) 이메일이 테스트 계정과 일치하는지 확인\r",
+									"pm.test(\"이메일이 테스트 계정과 일치\", function () {\r",
+									"  const user = json;\r",
+									"  const expectedEmail = \"testuser@example.com\";\r",
+									"\r",
+									"  pm.expect(user.email).to.eql(expectedEmail);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc2NDg2NTUwMSwianRpIjoiZGRlMWNhYTktYzJiYS00NGZiLTg2ZWMtZmRhN2VkZWU3N2U1IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjMxIiwibmJmIjoxNzY0ODY1NTAxLCJjc3JmIjoiZDVjNDQ1OGUtMjkxMS00MGViLWFmYzAtODJhY2RhZDBlNjA4IiwiZXhwIjoxNzY0ODY2NDAxLCJlbWFpbCI6InRlc3R1c2VyQGV4YW1wbGUuY29tIiwicm9sZSI6IkFETUlOIn0.26xtbKsVGbUxM-Gi9DwksCLlBF-JEsZ9XD-HUou2gcI",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/users/me",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"me"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/users/me (401 테스트)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 토큰 없이 호출했을 때 401 나오는지 테스트\r",
+									"pm.test(\"토큰 없이 401 Unauthorized\", function () {\r",
+									"    pm.response.to.have.status(401);\r",
+									"});\r",
+									"\r",
+									"const json = pm.response.json();\r",
+									"\r",
+									"pm.test(\"에러 코드 / 메시지 필드 존재\", function () {\r",
+									"    pm.expect(json).to.have.property(\"code\");\r",
+									"    pm.expect(json).to.have.property(\"message\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/users/me",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"me"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Books",
+			"item": [
+				{
+					"name": "/books",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 공통 응답 파싱\r",
+									"const json = pm.response.json();\r",
+									"\r",
+									"// 실제 데이터가 어디에 있는지 잡기\r",
+									"// - 우리 API는 { status, data: {...}, message } 형태라서\r",
+									"//   data가 있으면 data를 쓰고, 없으면 전체 객체를 그대로 사용\r",
+									"const data = json.data || json;\r",
+									"\r",
+									"// 1) 상태 코드 200 OK\r",
+									"pm.test(\"GET /books 200 OK\", function () {\r",
+									"  pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"// 2) content 배열 존재\r",
+									"pm.test(\"content 배열 존재\", function () {\r",
+									"  pm.expect(data).to.have.property(\"content\");\r",
+									"  pm.expect(data.content).to.be.an(\"array\");\r",
+									"});\r",
+									"\r",
+									"// 3) 책이 1권 이상 존재\r",
+									"pm.test(\"책이 1권 이상 존재\", function () {\r",
+									"  pm.expect(data.content.length).to.be.greaterThan(0);\r",
+									"});\r",
+									"\r",
+									"// 4) 페이지네이션 필드 존재 (page/size/totalElements/totalPages)\r",
+									"pm.test(\"페이지네이션 필드 존재\", function () {\r",
+									"  pm.expect(data).to.have.property(\"page\");\r",
+									"  pm.expect(data).to.have.property(\"size\");\r",
+									"  pm.expect(data).to.have.property(\"totalElements\");\r",
+									"  pm.expect(data).to.have.property(\"totalPages\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc2NDg2NjU5NiwianRpIjoiMjdhNzA0MzktNGUzMC00YjZmLThjZjItZTUxNDU3NzNhMGQzIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjMxIiwibmJmIjoxNzY0ODY2NTk2LCJjc3JmIjoiYjdjMDA3NmYtYWJmYi00Yzg2LWJjNGEtYWY0NzU1NzIxNGMxIiwiZXhwIjoxNzY0ODY3NDk2LCJlbWFpbCI6InRlc3R1c2VyQGV4YW1wbGUuY29tIiwicm9sZSI6IkFETUlOIn0.916357pGJR7rJVO8Ut1VZMnnUm_DQlvb1rV5lOSe5b0",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/books",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"books"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer"
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}
