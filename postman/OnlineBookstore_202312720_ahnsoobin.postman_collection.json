@@ -4,14 +4,14 @@
 		"name": "OnlineBookstore_202312720_ahnsoobin",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "48959361",
-		"_collection_link": "https://ansubinjjang1-8250788.postman.co/workspace/%EC%95%88%EC%88%98%EB%B9%88's-Workspace~95219ce8-b905-4c49-8e87-072d4b6e51c4/collection/48959361-a9a6dcd7-ba34-4fe0-a090-9bef8c3b9949?action=share&source=collection_link&creator=48959361"
+		"_collection_link": "https://ansubinjjang1-8250788.postman.co/workspace/%25EC%2595%2588%25EC%2588%2598%25EB%25B9%2588's-Workspace~95219ce8-b905-4c49-8e87-072d4b6e51c4/collection/48959361-a9a6dcd7-ba34-4fe0-a090-9bef8c3b9949?action=share&source=collection_link&creator=48959361"
 	},
 	"item": [
 		{
 			"name": "Auth",
 			"item": [
 				{
-					"name": "/auth/login",
+					"name": "/auth/login (성공 케이스)",
 					"event": [
 						{
 							"listen": "prerequest",
@@ -58,6 +58,58 @@
 									"language": "json"
 								}
 							}
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/auth/login (필수 필드 누락 422 테스트)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1) 422 상태 코드 확인\r",
+									"pm.test(\"필수 필드 누락 → 422 Unprocessable Entity\", function () {\r",
+									"    pm.response.to.have.status(422);\r",
+									"});\r",
+									"\r",
+									"// 2) 에러 code 확인\r",
+									"const json = pm.response.json();\r",
+									"\r",
+									"pm.test(\"validation error code = 422\", function () {\r",
+									"    pm.expect(json.code).to.eql(422);\r",
+									"});\r",
+									"\r",
+									"// 3) errors 필드 존재 확인\r",
+									"pm.test(\"validation errors 필드 존재\", function () {\r",
+									"    pm.expect(json).to.have.property(\"errors\");\r",
+									"    pm.expect(json.errors).to.have.property(\"json\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"email\": \"testuser@example.com\",\r\n  \"password\": \"WrongPassword123!\"\r\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/auth/login",
@@ -340,7 +392,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc2NDg2NjU5NiwianRpIjoiMjdhNzA0MzktNGUzMC00YjZmLThjZjItZTUxNDU3NzNhMGQzIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjMxIiwibmJmIjoxNzY0ODY2NTk2LCJjc3JmIjoiYjdjMDA3NmYtYWJmYi00Yzg2LWJjNGEtYWY0NzU1NzIxNGMxIiwiZXhwIjoxNzY0ODY3NDk2LCJlbWFpbCI6InRlc3R1c2VyQGV4YW1wbGUuY29tIiwicm9sZSI6IkFETUlOIn0.916357pGJR7rJVO8Ut1VZMnnUm_DQlvb1rV5lOSe5b0",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc2NDk5NjgzMywianRpIjoiOGJmYzUzNmUtZjBlNy00YzkyLWIxNzMtYzVjMDM3Y2ZjNTczIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjMxIiwibmJmIjoxNzY0OTk2ODMzLCJjc3JmIjoiNDFiZTkxYmMtMjBlZC00YTBkLWFkMzItYTdjOWRiNDVhNjkxIiwiZXhwIjoxNzY0OTk3NzMzLCJlbWFpbCI6InRlc3R1c2VyQGV4YW1wbGUuY29tIiwicm9sZSI6IkFETUlOIn0.uRvq8HdwM11jEw8iMaIOCXrkzgTt60kd5-LxD2Bo5zg",
 									"type": "string"
 								}
 							]
@@ -348,17 +400,42 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://127.0.0.1:5000/books",
-							"protocol": "http",
+							"raw": "{{base_url}}/books",
 							"host": [
-								"127",
-								"0",
-								"0",
-								"1"
+								"{{base_url}}"
 							],
-							"port": "5000",
 							"path": [
 								"books"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/books/{id} (존재하지 않는 도서 404 테스트)",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "// 1) 404 상태 코드 확인\r\npm.test(\"존재하지 않는 도서 → 404 Not Found\", function () {\r\n    pm.response.to.have.status(404);\r\n});\r\n\r\n// 2) 에러 응답 구조 확인\r\nconst json = pm.response.json();\r\n\r\npm.test(\"에러 code / message 필드 존재\", function () {\r\n    pm.expect(json).to.have.property(\"code\");\r\n    pm.expect(json).to.have.property(\"message\");\r\n});\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/books/9999999\n",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"books",
+								"9999999\n"
 							]
 						}
 					},
