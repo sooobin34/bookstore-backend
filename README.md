@@ -91,11 +91,11 @@ JWT_SECRET_KEY=change-me-jwt
 SQLALCHEMY_DATABASE_URI=mysql+pymysql://root:your-password@127.0.0.1:3306/bookstore_db
 SQLALCHEMY_TRACK_MODIFICATIONS=False
 
+# JCloud 배포 시 참고용 (실제 값은 서버 .env에서 production 기준으로 설정)
 JCLOUD_HOST=0.0.0.0
-JCLOUD_PORT=5000
-JCLOUD_SSH_KEY_PATH=/home/ubuntu/bookstore-key.pem
+JCLOUD_PORT=8000
 
-RATELIMIT_DEFAULT="100 per minute"
+RATELIMIT_DEFAULT=100 per minute
 
 API_TITLE=Bookstore API
 API_VERSION=1.0.0
@@ -122,8 +122,100 @@ flask run
 
 ---
 
-### 2-2. JCloud 배포 (실서버)
-jcloud에 올리고 수정예정
+## 2-2. JCloud 배포 (실서버)
+JCloud 인스턴스(Ubuntu 24.04)에 동일한 코드를 배포하고, `systemd`로 Flask 서버를 실행/관리하도록 구성하였다.
+
+### 1) JCloud 인스턴스 접속
+
+- JCloud 대시보드에서 Ubuntu 24.04 인스턴스 생성
+- SSH 접속 (예: Xshell 사용)
+
+```bash
+ssh -i <KEY>.pem ubuntu@<JCLOUD-HOST>
+# 과제 환경에서는 학교에서 제공한 포트포워딩 엔드포인트(예: 113.198.66.75:포트)를 통해 접속
+```
+
+### 2) 코드 배포 및 의존성 설치
+```bash
+# 프로젝트 클론
+git clone https://github.com/sooobin34/bookstore-backend
+cd bookstore-backend
+
+# 가상환경 생성 및 활성화
+python3 -m venv venv
+source venv/bin/activate
+
+# 패키지 설치
+pip install -r requirements.txt
+---
+```
+
+### 3) 서버용 .env (production) 설정
+
+서버에서는 FLASK_ENV=production, JCloud 포트(8000) 기준으로 환경변수를 설정하였다.
+
+```bash
+FLASK_ENV=production
+
+SECRET_KEY=********
+JWT_SECRET_KEY=********
+
+SQLALCHEMY_DATABASE_URI=mysql+pymysql://root:비밀번호@127.0.0.1:3306/bookstore_db
+SQLALCHEMY_TRACK_MODIFICATIONS=False
+
+JCLOUD_HOST=0.0.0.0
+JCLOUD_PORT=8000
+
+RATELIMIT_DEFAULT=100 per minute
+
+API_TITLE=Bookstore API
+API_VERSION=1.0.0
+```
+
+### 4) systemd 서비스 등록 (자동 실행)
+```bash
+sudo nano /etc/systemd/system/bookstore.service
+```
+```bash
+[Unit]
+Description=Bookstore Backend Flask Service
+After=network.target
+
+[Service]
+User=ubuntu
+WorkingDirectory=/home/ubuntu/bookstore-backend
+Environment="PATH=/home/ubuntu/bookstore-backend/venv/bin"
+ExecStart=/home/ubuntu/bookstore-backend/venv/bin/python /home/ubuntu/bookstore-backend/run.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable bookstore
+sudo systemctl start bookstore
+sudo systemctl status bookstore
+```
+
+### 5) 헬스체크 및 배포 검증
+```bash
+curl http://127.0.0.1:8000/health
+```
+
+예시 응답:
+```bash
+{
+  "service": "bookstore-backend",
+  "status": "OK",
+  "timestamp": "2025-12-06T15:02:00.020125+00:00",
+  "version": "1.0.0"
+}
+```
+
+- JCloud 인스턴스 재부팅 후에도 systemctl status bookstore 확인 시 active (running) 상태 유지
+
+- /health 엔드포인트가 200 OK를 반환함을 통해 배포 상태를 검증하였다.
 
 ---
 
@@ -138,10 +230,10 @@ jcloud에 올리고 수정예정
 | `SQLALCHEMY_DATABASE_URI`        | MySQL 연결 정보 (`mysql+pymysql://user:pass@host:port/db`) |
 | `SQLALCHEMY_TRACK_MODIFICATIONS` | SQLAlchemy 변경 추적 비활성화 플래그                              |
 | `JCLOUD_HOST`                    | JCloud 서버 바인딩 IP (보통 `0.0.0.0`)                        |
-| `JCLOUD_PORT`                    | JCloud 서버 포트 (예: `5000`)                               |
-| `JCLOUD_SSH_KEY_PATH`            | JCloud 접속용 PEM 키 경로 (서버용)                              |
-| `RATELIMIT_DEFAULT`              | 기본 레이트 리밋 설정 (예: `"100 per minute"`)                   |
+| `JCLOUD_PORT`                    | JCloud 서버 포트 (본 프로젝트에서는 `8000`으로 사용)          |
+| `RATELIMIT_DEFAULT`             | 기본 레이트 리밋 설정 (예: `100 per minute`)                   |
 | `CORS_ORIGINS`                   | 허용할 Origin 리스트(쉼표 구분)                                  |
+                                |
 
 ---
 
@@ -153,13 +245,18 @@ jcloud에 올리고 수정예정
 - OpenAPI JSON: http://127.0.0.1:5000/openapi.json
 - Health Check: http://127.0.0.1:5000/health
 
-### 4-2. JCloud 환경 (예정)
+### 4-2. JCloud 환경
 
-배포 후 실제 IP/포트로 업데이트 예정
-- Base URL: http://<JCLOUD-IP>:<PORT>/
-- Swagger UI: http://<JCLOUD-IP>:<PORT>/swagger-ui
-- OpenAPI JSON: http://<JCLOUD-IP>:<PORT>/openapi.json
-- Health Check: http://<JCLOUD-IP>:<PORT>/health
+- 인스턴스 내부 IP: `10.0.0.189`
+- 서비스 포트: `8000`
+
+- Base URL: http://10.0.0.189:8000/
+- Swagger UI: http://10.0.0.189:8000/swagger-ui
+- OpenAPI JSON: http://10.0.0.189:8000/openapi.json
+- Health Check: http://10.0.0.189:8000/health
+
+※ 과제 환경 특성상, 외부에서는 학교에서 제공한 SSH 포트포워딩 엔드포인트를 통해 접속하고,  
+실제 Flask 앱은 JCloud 인스턴스 내부에서 8000 포트로 서비스된다.
 
 ---
 
