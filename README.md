@@ -59,7 +59,7 @@
 
 ### 2-1. 로컬 실행 (개발 환경)
 
-#### 1) 의존성 설치
+### 1) 의존성 설치
 
 ```bash
 # (선택) 가상환경 생성
@@ -75,7 +75,7 @@ venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-#### 2) 환경변수 설정 (.env 파일 생성)
+### 2) 환경변수 설정 (.env 파일 생성)
 ```bash
 # .env.example 복사 후 값 채우기
 cp .env.example .env  # Windows에서는 수동 복사
@@ -105,7 +105,7 @@ CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
 
 ```
 
-#### 3) DB 마이그레이션 + 시드 데이터
+### 3) DB 마이그레이션 + 시드 데이터
 ```bash
 # DB 마이그레이션 적용
 flask db upgrade
@@ -114,7 +114,7 @@ flask db upgrade
 python seed_data.py
 ```
 
-#### 4) 서버 실행
+### 4) 서버 실행
 ```bash
 flask run
 # 기본: http://127.0.0.1:5000
@@ -127,7 +127,7 @@ jcloud에 올리고 수정예정
 
 ---
 
-#### 3. 환경변수 설명
+## 3. 환경변수 설명
 
 .env.example 파일과 매칭되는 주요 환경변수:
 | 키                                | 설명                                                     |
@@ -145,15 +145,15 @@ jcloud에 올리고 수정예정
 
 ---
 
-#### 4. 배포/접속 정보
-### 4-1. 로컬 환경
+## 4. 배포/접속 정보
+#### 4-1. 로컬 환경
 
 - Base URL: http://127.0.0.1:5000/
 - Swagger UI: http://127.0.0.1:5000/swagger-ui
 - OpenAPI JSON: http://127.0.0.1:5000/openapi.json
 - Health Check: http://127.0.0.1:5000/health
 
-### 4-2. JCloud 환경 (예정)
+#### 4-2. JCloud 환경 (예정)
 
 배포 후 실제 IP/포트로 업데이트 예정
 - Base URL: http://<JCLOUD-IP>:<PORT>/
@@ -163,8 +163,8 @@ jcloud에 올리고 수정예정
 
 ---
 
-#### 5. 인증 플로우 (JWT)
-### 5-1. 회원가입
+## 5. 인증 플로우 (JWT)
+#### 5-1. 회원가입
 ```bash
 POST /auth/signup
 Content-Type: application/json
@@ -176,7 +176,7 @@ Content-Type: application/json
 }
 ```
 
-### 5-2. 로그인 (Access / Refresh 발급)
+#### 5-2. 로그인 (Access / Refresh 발급)
 
 ```bash
 POST /auth/login
@@ -197,7 +197,7 @@ Content-Type: application/json
 }
 ```
 
-### 5-3. 토큰 재발급
+#### 5-3. 토큰 재발급
 ```bash
 POST /auth/refresh
 Authorization: Bearer <refreshToken>
@@ -205,7 +205,7 @@ Authorization: Bearer <refreshToken>
 → 새로운 accessToken 발급
 ```
 
-### 5-4. 보호된 엔드포인트 호출
+#### 5-4. 보호된 엔드포인트 호출
 ```bash
 GET /users/me
 Authorization: Bearer <accessToken>
@@ -213,14 +213,14 @@ Authorization: Bearer <accessToken>
 
 ---
 
-#### 6. 역할/권한표 (RBAC)
+## 6. 역할/권한표 (RBAC)
 
 | Role    | 설명           | 접근 가능한 주요 API 예시                         |
 | ------- | ------------ | ---------------------------------------- |
 | `USER`  | 일반 사용자       | 도서 조회, 장바구니, 주문 생성, 리뷰 작성/수정(본인)         |
 | `ADMIN` | 관리자 (운영자 권한) | 사용자 목록/관리, 전체 주문 조회/상태 변경, 일부 관리자 전용 API |
 
-# 관리자 전용 API 예시
+관리자 전용 API 예시
 - GET /users – 전체 사용자 목록 조회
 - PATCH /users/{id}/role – 사용자 역할 변경
 - PATCH /users/{id}/deactivate – 사용자 비활성화
@@ -230,8 +230,8 @@ Authorization: Bearer <accessToken>
 
 ---
 
-#### 7. 예제 계정 및 DB 정보
-### 7-1. 예제 계정 (시드 데이터)
+## 7. 예제 계정 및 DB 정보
+#### 7-1. 예제 계정 (시드 데이터)
 ```bash
 관리자(Admin)
 email: admin@example.com
@@ -244,7 +244,7 @@ password: User123!
 
 시드 스크립트(seed_data.py) 실행 시 Faker를 통해 추가 사용자, 도서, 리뷰, 주문, 장바구니, 위시리스트 데이터가 자동 생성됩니다.
 
-### 7-2. DB 연결 정보 (테스트용)
+#### 7-2. DB 연결 정보 (테스트용)
 
 - DB 타입: MySQL
 - 호스트: 127.0.0.1
@@ -254,19 +254,19 @@ password: User123!
 
 ---
 
-#### 8. 엔드포인트 요약
+## 8. 엔드포인트 요약
 
-### 8-1. Health
+#### 8-1. Health
 
 - GET /health – 헬스체크(무인증, 200 OK)
 
-### 8-2. Auth
+#### 8-2. Auth
 
 - POST /auth/signup
 - POST /auth/login
 - POST /auth/refresh
 
-### 8-3. Users
+#### 8-3. Users
 
 - GET /users/me – 내 정보 조회
 - PATCH /users/me – 내 정보 수정
@@ -274,7 +274,7 @@ password: User123!
 - PATCH /users/{user_id}/role – (ADMIN) 역할 변경
 - PATCH /users/{user_id}/deactivate – (ADMIN) 계정 비활성화
 
-### 8-4. Books
+#### 8-4. Books
 
 - GET /books – 도서 목록 + 검색/정렬/페이지네이션
     - 쿼리 파라미터: page, size, sort, keyword, category, minPrice, maxPrice
@@ -283,7 +283,7 @@ password: User123!
 - PATCH /books/{book_id} – (ADMIN 예정) 도서 수정
 - DELETE /books/{book_id} – (ADMIN 예정) 도서 삭제
 
-### 8-5. Reviews
+#### 8-5. Reviews
 
 - GET /books/{book_id}/reviews
 - POST /books/{book_id}/reviews
@@ -292,7 +292,7 @@ password: User123!
 - DELETE /reviews/{review_id}
 - GET /reviews – 리뷰 검색 (userId, bookId, minRating, maxRating)
 
-### 8-6. Cart
+#### 8-6. Cart
 
 - POST /cart/items
 - GET /cart/items
@@ -301,7 +301,7 @@ password: User123!
 - DELETE /cart
 - GET /cart/summary
 
-### 8-7. Orders
+#### 8-7. Orders
 
 - POST /orders – 장바구니 → 주문 생성
 - GET /orders – 내 주문 목록
@@ -313,7 +313,7 @@ password: User123!
 - GET /orders/admin/{order_id}
 - PATCH /orders/admin/{order_id}/status
 
-### 8-8. Wishlist
+#### 8-8. Wishlist
 
 - GET /wishlist – 내 위시리스트 목록
 - POST /wishlist – 위시리스트에 도서 추가
@@ -321,32 +321,32 @@ password: User123!
 
 ---
 
-#### 9. 보안/성능 고려사항
+## 9. 보안/성능 고려사항
 
-### 9-1. 비밀번호 해시
+#### 9-1. 비밀번호 해시
 
 - bcrypt 기반 해시 함수 사용 (hash_password, verify_password)
 - 비밀번호 평문 저장 금지
 
-### 9-2. CORS
+#### 9-2. CORS
 
 - Flask-CORS 사용
 - 개발 환경: localhost:3000 등 허용
 - 운영/배포 환경: 필요한 Origin만 허용하도록 .env에서 설정 가능
 
-### 9-3. 레이트 리밋
+#### 9-3. 레이트 리밋
 
 - Flask-Limiter 사용
 - 기본값: 100 per minute (전역)
 - 옵션: .env의 RATELIMIT_DEFAULT로 조정 가능
 
-### 9-4. N+1 방지
+#### 9-4. N+1 방지
 
 - Orders / Cart 등에서 joinedload, selectinload 사용
     - 예: 주문 목록에서 Order.items 및 OrderItem.book까지 Eager Loading
     - 장바구니 조회 시 CartItem.book을 Eager Loading
 
-### 9-5. 로깅
+#### 9-5. 로깅
 
 - app.before_request / app.after_request에서 
     - HTTP 메서드, 경로, 상태코드, 응답 시간(ms) 로그 남김
@@ -354,7 +354,7 @@ password: User123!
 
 ---
 
-#### 10. 테스트
+## 10. 테스트
 
 - 테스트 러너: pytest
 - 실행 명령어:
@@ -369,13 +369,13 @@ pytest -q
 
 ---
 
-#### 11. Postman 컬렉션
+## 11. Postman 컬렉션
 
 - 제출 파일 예시:
     - postman/bookstore_collection.json
     - (필요 시) postman/bookstore_environment.json
 
-### 11-1. 환경 변수
+#### 11-1. 환경 변수
 
 - {{BASE_URL}}
     - 로컬: http://127.0.0.1:5000
@@ -383,7 +383,7 @@ pytest -q
 - {{ACCESS_TOKEN}}, {{REFRESH_TOKEN}}
     - 로그인/리프레시 이후 Pre-request/Test 스크립트로 저장하여 자동으로 Authorization 헤더에 주입
 
-### 11-2. Pre-request / Test 스크립트 예시
+#### 11-2. Pre-request / Test 스크립트 예시
 
 - 로그인 성공 시 accessToken / refreshToken을 환경 변수에 저장
 - 보호된 API 호출 전 Authorization: Bearer {{ACCESS_TOKEN}} 자동 설정
@@ -391,7 +391,7 @@ pytest -q
 
 ---
 
-#### 12. 한계와 개선 계획
+## 12. 한계와 개선 계획
 
 - 현재 ADMIN 전용 도서 관리 API(create/update/delete)는 Swagger에는 정의되어 있으나, 실제 RBAC 강제(ADMIN만 허용)는 일부 주석 처리 상태 → 배포 이후 ADMIN 엔드포인트 완전 고정 예정
 
@@ -403,7 +403,7 @@ pytest -q
 
 ---
 
-### 13. 요약
+## 13. 요약
 
 이 프로젝트는 온라인 서점 비즈니스 로직을 가진 REST API 서버로서
 
