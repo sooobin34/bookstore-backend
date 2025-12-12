@@ -1,7 +1,7 @@
 # Bookstore REST API (웹서비스 설계 기말 프로젝트)
 
-온라인 서점 도메인을 가진 RESTful 백엔드 API 서버입니다.  
-도서 조회/검색, 장바구니, 주문, 리뷰, 위시리스트, 사용자 관리, JWT 인증/인가, 레이트 리밋, 로깅, Swagger 문서화까지 포함한 **풀스택 백엔드 과제** 구현을 목표로 합니다.
+온라인 서점 도메인의 RESTful 백엔드 API 서버입니다.
+도서 조회/검색, 장바구니, 주문, 리뷰, 위시리스트, 사용자 관리, JWT 인증/인가, 레이트 리밋, 로깅, Swagger 문서화까지 포함한 수업 요구사항 기반 백엔드 과제입니다.
 
 ---
 
@@ -77,8 +77,7 @@ pip install -r requirements.txt
 
 ### 2) 환경변수 설정 (.env 파일 생성)
 ```bash
-# .env.example 복사 후 값 채우기
-cp .env.example .env  # Windows에서는 수동 복사
+cp .env.example .env  # Windows는 파일 복사로 진행
 ```
 
 .env 예시 (실제 비밀번호/키는 변경해서 사용):
@@ -150,9 +149,10 @@ pip install -r requirements.txt
 ```
 
 ### 3) 서버용 .env (production) 설정
+- ⚠️ .env는 GitHub Public Repo에 포함하지 않으며(민감정보), 별도 제출(Classroom)로 관리합니다.
+- 서버에서는 FLASK_ENV=production, JCloud 포트(8000) 기준으로 환경변수를 설정하였다.
 
-서버에서는 FLASK_ENV=production, JCloud 포트(8000) 기준으로 환경변수를 설정하였다.
-
+서버 .env 예시:
 ```bash
 FLASK_ENV=production
 
@@ -171,10 +171,12 @@ API_TITLE=Bookstore API
 API_VERSION=1.0.0
 ```
 
-### 4) systemd 서비스 등록 (자동 실행)
+### 4) systemd 서비스 등록 (재부팅 후에도 자동 실행)
 ```bash
 sudo nano /etc/systemd/system/bookstore.service
 ```
+
+/etc/systemd/system/bookstore.service
 ```bash
 [Unit]
 Description=Bookstore Backend Flask Service
@@ -195,6 +197,20 @@ sudo systemctl daemon-reload
 sudo systemctl enable bookstore
 sudo systemctl start bookstore
 sudo systemctl status bookstore
+```
+
+등록/실행:
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable bookstore
+sudo systemctl start bookstore
+sudo systemctl status bookstore
+```
+
+코드/설정 변경 후 재적용:
+```bash
+sudo systemctl daemon-reload
+sudo systemctl restart bookstore
 ```
 
 ### 5) 헬스체크 및 배포 검증
@@ -244,15 +260,19 @@ curl http://127.0.0.1:8000/health
 - Health Check: http://127.0.0.1:5000/health
 
 ### 4-2. JCloud 환경 (외부 접속)
-- SSH 접속(포트포워딩): `ssh -i bookstore.pem -p 19189 ubuntu@113.198.66.75`
-- 외부 Base URL: `http://113.198.66.75:10189`  (내부 8000 포워딩)
+- SSH 접속(포트포워딩): 
+```bash
+`ssh -i bookstore.pem -p 19189 ubuntu@113.198.66.75`
+```
+- 외부 Base URL: http://113.198.66.75:10189  
+(외부 포트(10189)는 인스턴스 내부 8000으로 포트포워딩됨)
 
-- Health Check: `http://113.198.66.75:10189/health`
-- Swagger UI: `http://113.198.66.75:10189/swagger-ui`
-- OpenAPI JSON: `http://113.198.66.75:10189/openapi.json`
+- Health Check: http://113.198.66.75:10189/health
+- Swagger UI: http://113.198.66.75:10189/swagger-ui
+- OpenAPI JSON: http://113.198.66.75:10189/openapi.json
 
 ### (참고) 인스턴스 내부
-- Internal Base URL: `http://10.0.0.189:8000`
+- Internal Base URL: http://10.0.0.189:8000
 
 
 ---
@@ -471,9 +491,8 @@ pytest -q
 
 ## 11. Postman 컬렉션
 
-- 제출 파일 예시:
-    - postman/bookstore_collection.json
-    - (필요 시) postman/bookstore_environment.json
+- 제출 파일:
+본 repo의 postman/ 폴더에 컬렉션 및 환경변수 JSON을 포함함.
 
 ### 11-1. 환경 변수
 
