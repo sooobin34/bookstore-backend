@@ -102,7 +102,6 @@ API_VERSION=1.0.0
 
 # CORS 허용 도메인(개발용)
 CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
-
 ```
 
 ### 3) DB 마이그레이션 + 시드 데이터
@@ -238,25 +237,23 @@ curl http://127.0.0.1:8000/health
 ---
 
 ## 4. 배포/접속 정보
-### 4-1. 로컬 환경
 
-- Base URL: http://127.0.0.1:5000/
+### 4-1. 로컬 환경
+- Base URL: http://127.0.0.1:5000
 - Swagger UI: http://127.0.0.1:5000/swagger-ui
-- OpenAPI JSON: http://127.0.0.1:5000/openapi.json
 - Health Check: http://127.0.0.1:5000/health
 
-### 4-2. JCloud 환경
+### 4-2. JCloud 환경 (외부 접속)
+- SSH 접속(포트포워딩): `ssh -i bookstore.pem -p 19189 ubuntu@113.198.66.75`
+- 외부 Base URL: `http://113.198.66.75:10189`  (내부 8000 포워딩)
 
-- 인스턴스 내부 IP: `10.0.0.189`
-- 서비스 포트: `8000`
+- Health Check: `http://113.198.66.75:10189/health`
+- Swagger UI: `http://113.198.66.75:10189/swagger-ui`
+- OpenAPI JSON: `http://113.198.66.75:10189/openapi.json`
 
-- Base URL: http://10.0.0.189:8000/
-- Swagger UI: http://10.0.0.189:8000/swagger-ui
-- OpenAPI JSON: http://10.0.0.189:8000/openapi.json
-- Health Check: http://10.0.0.189:8000/health
+### (참고) 인스턴스 내부
+- Internal Base URL: `http://10.0.0.189:8000`
 
-※ 과제 환경 특성상, 외부에서는 학교에서 제공한 SSH 포트포워딩 엔드포인트를 통해 접속하고,  
-실제 Flask 앱은 JCloud 인스턴스 내부에서 8000 포트로 서비스된다.
 
 ---
 
@@ -420,30 +417,36 @@ password: User123!
 
 ## 9. 보안/성능 고려사항
 
-### 9-1. 비밀번호 해시
+### 9-1. 디버그 모드 비활성화 (배포 환경)
+
+- 배포 환경에서는 Flask 애플리케이션을 `debug=False`로 실행하여
+  디버그 콘솔(Werkzeug Debugger) 노출을 방지함
+- 이를 통해 내부 스택트레이스 및 민감한 환경 정보 노출 위험을 최소화함
+
+### 9-2. 비밀번호 해시
 
 - bcrypt 기반 해시 함수 사용 (hash_password, verify_password)
 - 비밀번호 평문 저장 금지
 
-### 9-2. CORS
+### 9-3. CORS
 
 - Flask-CORS 사용
 - 개발 환경: localhost:3000 등 허용
 - 운영/배포 환경: 필요한 Origin만 허용하도록 .env에서 설정 가능
 
-### 9-3. 레이트 리밋
+### 9-4. 레이트 리밋
 
 - Flask-Limiter 사용
 - 기본값: 100 per minute (전역)
 - 옵션: .env의 RATELIMIT_DEFAULT로 조정 가능
 
-### 9-4. N+1 방지
+### 9-5. N+1 방지
 
 - Orders / Cart 등에서 joinedload, selectinload 사용
     - 예: 주문 목록에서 Order.items 및 OrderItem.book까지 Eager Loading
     - 장바구니 조회 시 CartItem.book을 Eager Loading
 
-### 9-5. 로깅
+### 9-6. 로깅
 
 - app.before_request / app.after_request에서 
     - HTTP 메서드, 경로, 상태코드, 응답 시간(ms) 로그 남김
